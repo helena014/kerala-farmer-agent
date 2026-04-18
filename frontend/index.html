@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kerala Farmer Advisory Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Malayalam:wght@400;600;700&family=Playfair+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header>
+  <div class="hi">
+    <div>
+      <div class="lr">
+        <div class="li">🌾</div>
+        <div>
+          <h1>Kerala <span>Farmer Advisory</span> Agent</h1>
+          <div class="hsub">Proactive AI-Powered Market Intelligence for Kerala Farmers</div>
+        </div>
+      </div>
+      <div id="api-status" class="api-status">⏳ Connecting to backend...</div>
+    </div>
+    <div class="hb">
+      <div class="bt" id="clock">06:00 AM</div>
+      <div class="bd2" id="dateline">Daily Advisory · Kerala</div>
+      <div class="sched-badge" id="sched-badge">⏰ Next advisory: loading...</div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== TABS ===== -->
+<div class="tabs">
+  <div class="tab active"  data-tab="farmers">👤 Farmers</div>
+  <div class="tab"         data-tab="advisory">📱 Advisory Feed</div>
+  <div class="tab"         data-tab="composer">✍️ Composer</div>
+  <div class="tab"         data-tab="qa">💬 Q&amp;A Agent</div>
+  <div class="tab"         data-tab="eval">📊 Evaluation</div>
+  <div class="tab"         data-tab="arch">🏗️ Architecture</div>
+</div>
+
+<div class="main">
+
+  <!-- ══════════════════════════════════════════
+       TAB 1: FARMER PROFILES
+  ══════════════════════════════════════════ -->
+  <div id="panel-farmers" class="panel active">
+    <div class="ph">
+      <div class="pt">Farmer Profile Store</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn bp" onclick="toggleAddForm()">+ Add Farmer</button>
+        <button class="btn bg2" onclick="triggerAllAdvisories()">🚀 Send All Advisories Now</button>
+      </div>
+    </div>
+
+    <div id="add-form" class="aff">
+      <div class="form-title">Add New Farmer</div>
+      <div class="fgrid">
+        <div class="fg2"><label>Farmer Name *</label><input type="text" id="f-name" placeholder="e.g. Rajan P.K."/></div>
+        <div class="fg2"><label>District *</label>
+          <select id="f-district">
+            <option>Thrissur</option><option>Palakkad</option><option>Wayanad</option>
+            <option>Ernakulam</option><option>Malappuram</option><option>Kozhikode</option>
+            <option>Kannur</option><option>Thiruvananthapuram</option><option>Kollam</option>
+            <option>Idukki</option><option>Kottayam</option><option>Alappuzha</option>
+          </select>
+        </div>
+        <div class="fg2"><label>Primary Crop *</label>
+          <select id="f-crop">
+            <option>Rice</option><option>Coconut</option><option>Pepper</option>
+            <option>Banana</option><option>Ginger</option><option>Rubber</option>
+            <option>Tapioca</option><option>Vegetables</option>
+          </select>
+        </div>
+        <div class="fg2"><label>Phone Number</label><input type="text" id="f-phone" placeholder="+91 9XXXXXXXXX"/></div>
+        <div class="fg2"><label>Language</label>
+          <select id="f-lang"><option>Malayalam</option><option>English</option></select>
+        </div>
+        <div class="fg2"><label>Land Size (acres)</label><input type="text" id="f-land" placeholder="e.g. 2.5"/></div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn bg2" onclick="addFarmer()">💾 Save Farmer</button>
+        <button class="btn" style="background:#eee;color:#333" onclick="toggleAddForm()">Cancel</button>
+      </div>
+    </div>
+
+    <div class="fg" id="farmer-grid">
+      <div class="loading-placeholder">⏳ Loading farmers...</div>
+    </div>
+
+    <div class="stbar">
+      <div><span class="sdot"></span> System Active — Advisories sent daily via WhatsApp simulation</div>
+      <div class="stitems">
+        <span id="st-prices">📡 Agmarknet: —</span>
+        <span id="st-weather">🌤️ IMD: —</span>
+        <span id="st-sched">⏰ Scheduler: —</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TAB 2: ADVISORY FEED (WhatsApp-style)
+  ══════════════════════════════════════════ -->
+  <div id="panel-advisory" class="panel">
+    <div class="ph">
+      <div class="pt">Advisory Message Feed</div>
+      <div style="display:flex;gap:10px">
+        <button class="btn bp" onclick="loadMessages()">🔄 Refresh</button>
+        <button class="btn" style="background:#fee2e2;color:#dc2626;border:none;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px" onclick="clearMessages()">🗑️ Clear All</button>
+      </div>
+    </div>
+
+    <div class="advisory-layout">
+      <div class="feed-panel">
+        <div class="sl">WhatsApp Message Feed</div>
+        <div id="msg-feed" class="msg-feed">
+          <div class="empty-state">📭 No messages yet.<br>Click "Send All Advisories Now" in the Farmers tab to generate messages.</div>
+        </div>
+      </div>
+      <div class="feed-detail">
+        <div class="sl">Message Detail</div>
+        <div id="msg-detail" class="msg-detail-panel">
+          <div class="empty-state">👈 Click a message to see full details</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scheduler controls -->
+    <div class="scheduler-card">
+      <div class="ect">⏰ Scheduler Control — Change Advisory Send Time</div>
+      <div class="sched-controls">
+        <div class="fg2" style="min-width:120px">
+          <label>Hour (0–23)</label>
+          <input type="number" id="sched-hour" min="0" max="23" value="6" />
+        </div>
+        <div class="fg2" style="min-width:120px">
+          <label>Minute (0–59)</label>
+          <input type="number" id="sched-min" min="0" max="59" value="0" />
+        </div>
+        <button class="btn bp" onclick="updateSchedule()" style="align-self:flex-end">Update Schedule</button>
+        <button class="btn bg2" onclick="triggerAllAdvisories()" style="align-self:flex-end">▶ Trigger Now</button>
+      </div>
+      <div style="font-size:12px;color:var(--tl);margin-top:8px">
+        
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TAB 3: COMPOSER
+  ══════════════════════════════════════════ -->
+  <div id="panel-composer" class="panel">
+    <div class="ph">
+      <div class="pt">Message Composer — Generate Advisory</div>
+    </div>
+
+    <div class="sl">Select Farmer</div>
+    <div id="comp-farmer-row" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px"></div>
+
+    <div id="comp-aprog" class="aprog"><div class="apf" id="comp-apf"></div></div>
+    <div id="comp-gstat" class="gstat"></div>
+
+    <div class="cl2">
+      <!-- Left: Live Data -->
+      <div>
+        <div class="sl">Live Data Feeds</div>
+        <div class="dc">
+          <div class="dct">📈 Agmarknet Market Prices (₹/quintal)</div>
+          <div id="price-data"><div class="ph-text">Select a farmer to load data</div></div>
+        </div>
+        <div class="dc">
+          <div class="dct">🌤️ IMD Weather Forecast — 5 Days</div>
+          <div class="wr" id="weather-row"><div class="ph-text">Select a farmer to load weather</div></div>
+        </div>
+        <div class="dc">
+          <div class="dct">🐛 Kerala Agri Dept — Pest Bulletin</div>
+          <div id="pest-data"><div class="ph-text">Select a farmer to load pest bulletin</div></div>
+        </div>
+      </div>
+
+      <!-- Right: WhatsApp preview -->
+      <div>
+        <div class="sl">WhatsApp Preview</div>
+        <div class="wpp">
+          <div class="wpph">
+            <div class="wpav">🌾</div>
+            <div><div class="wpn">Kerala Krishi Agent</div><div class="wponl">Online</div></div>
+          </div>
+          <div class="wpb" id="comp-wpb">
+            <div class="wpbu" style="color:var(--tl);font-style:italic;font-size:12px">
+              Select a farmer above and click Generate to compose the AI advisory.
+            </div>
+          </div>
+        </div>
+        <div style="text-align:center;margin-top:16px">
+          <button class="gbtn" id="comp-gbtn" onclick="composeAdvisory()" disabled>
+            🤖 Generate Advisory with Gemini AI
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TAB 4: Q&A AGENT
+  ══════════════════════════════════════════ -->
+  <div id="panel-qa" class="panel">
+    <div class="ph">
+      <div class="pt">Reactive Q&amp;A Agent</div>
+      <div style="font-size:13px;color:var(--tl)">Farmers reply to morning messages with follow-up questions</div>
+    </div>
+    <div class="qlayout">
+      <div>
+        <div class="sl">Select Farmer &amp; Chat</div>
+        <div style="margin-bottom:12px">
+          <select id="qa-farmer-sel" class="qasel" onchange="selectQAFarmer()">
+            <option value="">— Select a farmer —</option>
+          </select>
+        </div>
+        <div class="qchat">
+          <div class="qhead" id="qhead">💬 Select a farmer to start</div>
+          <div class="qmsgs" id="qmsgs">
+            <div class="qmsg qa2" style="font-size:12px;color:var(--tl);font-style:italic">
+              Select a farmer above to load their morning advisory context, then ask questions.
+            </div>
+          </div>
+          <div class="qirow">
+            <input class="qinp qml" id="qinp" placeholder="ഒരു ചോദ്യം ടൈപ്പ് ചെയ്യുക (Type your question)..."/>
+            <button class="btn bp bsm" onclick="sendQA()">Send</button>
+          </div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn bsm" style="background:#e8f5e9;color:#2e7d32;border:none;cursor:pointer" onclick="quickQ('ഇന്ന് വില എന്ത്?')">വില എന്ത്?</button>
+          <button class="btn bsm" style="background:#e8f5e9;color:#2e7d32;border:none;cursor:pointer" onclick="quickQ('ഈ ആഴ്ച വിൽക്കണോ?')">വിൽക്കണോ?</button>
+          <button class="btn bsm" style="background:#e8f5e9;color:#2e7d32;border:none;cursor:pointer" onclick="quickQ('കൊപ്ര ഉണ്ടാക്കണോ?')">കൊപ്ര?</button>
+          <button class="btn bsm" style="background:#e8f5e9;color:#2e7d32;border:none;cursor:pointer" onclick="quickQ('കൃഷിക്ക് spray ഏത്?')">Spray?</button>
+          <button class="btn bsm" style="background:#fff3cd;color:#856404;border:none;cursor:pointer" onclick="quickQ('What is the weather forecast?')">Weather?</button>
+        </div>
+      </div>
+      <div>
+        <div class="sl">RAG Knowledge Base</div>
+        <div class="ragbox">
+          <div style="font-size:13px;color:var(--tm);margin-bottom:14px">When a farmer asks a question, the agent searches these sources:</div>
+          <div class="ragsrc"><div class="ragico">📰</div><div><div class="ragname">Kerala Agriculture Department Bulletins</div><div class="ragdesc">Pest alerts, disease management, seasonal advisories</div></div></div>
+          <div class="ragsrc"><div class="ragico">📊</div><div><div class="ragname">Agmarknet Historical Price Database</div><div class="ragdesc">30-day price trends for "sell or wait" advice</div></div></div>
+          <div class="ragsrc"><div class="ragico">🌾</div><div><div class="ragname">Kerala Agricultural University Publications</div><div class="ragdesc">Crop-specific best practices, soil, fertilizer, irrigation</div></div></div>
+          <div class="ragsrc"><div class="ragico">🌤️</div><div><div class="ragname">IMD District Weather Advisories</div><div class="ragdesc">Rain predictions, cyclone warnings, harvest timing</div></div></div>
+          <div class="ragsrc"><div class="ragico">🤖</div><div><div class="ragname">Gemini Flash LLM</div><div class="ragdesc">Synthesizes context into plain Malayalam answers</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TAB 5: EVALUATION
+  ══════════════════════════════════════════ -->
+  <div id="panel-eval" class="panel">
+    <div class="ph">
+      <div class="pt">Evaluation Dataset &amp; Metrics</div>
+      <button class="btn bp bsm" onclick="runEvaluation()">▶ Run Evaluation</button>
+    </div>
+    <div class="egrid">
+      <div class="ecard">
+        <div class="ect">📊 Model Performance Metrics</div>
+        <div class="sbar-w"><div class="slbl"><span>Message Relevance</span><span id="rel-score">—</span></div><div class="sbar"><div class="sfill" id="rel-bar" style="width:0%"></div></div></div>
+        <div class="sbar-w"><div class="slbl"><span>Translation Quality (Malayalam)</span><span id="trans-score">—</span></div><div class="sbar"><div class="sfill gold" id="trans-bar" style="width:0%"></div></div></div>
+        <div class="sbar-w"><div class="slbl"><span>Price Accuracy vs Agmarknet</span><span id="price-score">—</span></div><div class="sbar"><div class="sfill" id="price-bar" style="width:0%"></div></div></div>
+        <div class="sbar-w"><div class="slbl"><span>Farmer Comprehension (user test)</span><span id="comp-score">—</span></div><div class="sbar"><div class="sfill blue" id="comp-bar" style="width:0%"></div></div></div>
+        <div style="font-size:11px;color:var(--tl);margin-top:12px">30 crop-district combos · 5 simulated days · 150 total messages</div>
+        <div id="eval-desc" style="margin-top:12px;font-size:12px;color:var(--tm)"></div>
+      </div>
+      <div class="ecard">
+        <div class="ect">🗂️ Evaluation Dataset (30 Combinations)</div>
+        <div style="max-height:340px;overflow-y:auto">
+          <table class="etbl">
+            <thead><tr><th>Crop</th><th>District</th><th>Avg ₹/Q</th><th>Trend</th></tr></thead>
+            <tbody id="eval-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TAB 6: ARCHITECTURE
+  ══════════════════════════════════════════ -->
+  <div id="panel-arch" class="panel">
+    <div class="ph"><div class="pt">System Architecture</div></div>
+    <div class="arch">
+      <div class="arow">
+        <div class="abox"><div class="aico">📡</div><div class="abt">Agmarknet API</div><div class="abs2">Mandi prices</div></div>
+        <div class="abox"><div class="aico">🌤️</div><div class="abt">IMD Weather API</div><div class="abs2">5-day forecasts</div></div>
+        <div class="abox"><div class="aico">🕷️</div><div class="abt">Scrapy Crawler</div><div class="abs2">Kerala Agri Dept</div></div>
+      </div>
+      <div class="aarr">↓</div>
+      <div class="arow">
+        <div class="abox ahi" style="min-width:340px">
+          <div class="aico">⏰</div>
+          <div class="abt">APScheduler — Configurable Daily Job</div>
+          <div class="abs2">FastAPI backend · SQLite/PostgreSQL · Python</div>
+        </div>
+      </div>
+      <div class="aarr">↓</div>
+      <div class="arow">
+        <div class="abox"><div class="aico">🎯</div><div class="abt">Personalization Engine</div><div class="abs2">Filter by crop + district</div></div>
+        <div class="abox"><div class="aico">✍️</div><div class="abt">Message Composer</div><div class="abs2">Gemini Flash · Malayalam</div></div>
+        <div class="abox"><div class="aico">🗣️</div><div class="abt">Voice Option</div><div class="abs2">Sarvam AI Bulbul TTS</div></div>
+      </div>
+      <div class="aarr">↓</div>
+      <div class="arow">
+        <div class="abox ahi" style="min-width:340px">
+          <div class="aico">📱</div>
+          <div class="abt">WhatsApp Business API (Twilio)</div>
+          <div class="abs2">Delivered to farmer's phone · Shown in this dashboard</div>
+        </div>
+      </div>
+      <div class="aarr">↓</div>
+      <div class="arow">
+        <div class="abox"><div class="aico">💬</div><div class="abt">Q&amp;A Handler</div><div class="abs2">Reactive follow-ups</div></div>
+        <div class="abox"><div class="aico">📚</div><div class="abt">RAG System</div><div class="abs2">Kerala Agri publications</div></div>
+        <div class="abox"><div class="aico">🤖</div><div class="abt">Gemini Flash</div><div class="abs2">LLM for Q&amp;A</div></div>
+      </div>
+    </div>
+    <div style="margin-top:26px">
+      <div class="sl">Technology Stack</div>
+      <div class="tstack">
+        <div class="ti"><div class="tii">⚡</div><div><div class="tin">FastAPI</div><div class="tis">Python backend framework</div></div></div>
+        <div class="ti"><div class="tii">🗄️</div><div><div class="tin">SQLite / PostgreSQL</div><div class="tis">Farmer profile database</div></div></div>
+        <div class="ti"><div class="tii">⏰</div><div><div class="tin">APScheduler</div><div class="tis">Configurable daily job runner</div></div></div>
+        <div class="ti"><div class="tii">🤖</div><div><div class="tin">Gemini 1.5 Flash</div><div class="tis">Malayalam message generation</div></div></div>
+        <div class="ti"><div class="tii">🗣️</div><div><div class="tin">Sarvam AI Bulbul</div><div class="tis">Malayalam text-to-speech</div></div></div>
+        <div class="ti"><div class="tii">📱</div><div><div class="tin">WhatsApp Business API</div><div class="tis">Delivery via Twilio</div></div></div>
+        <div class="ti"><div class="tii">🕷️</div><div><div class="tin">Scrapy</div><div class="tis">Bulletin web scraping</div></div></div>
+        <div class="ti"><div class="tii">☁️</div><div><div class="tin">AWS / Google Cloud</div><div class="tis">Production deployment</div></div></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<div id="toast" class="toast"></div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
