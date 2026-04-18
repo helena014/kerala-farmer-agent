@@ -4,7 +4,7 @@
 
 'use strict';
 
-const API = 'http://localhost:8000';
+const API = 'https://kerala-farmer-agent.onrender.com';
 let farmers       = [];
 let selFarmer     = null;   // composer tab
 let qaFarmer      = null;   // Q&A tab
